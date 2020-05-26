@@ -1,19 +1,20 @@
 """ TicTacToe game """
 
 from abc import ABC
+from random import choice
 
 
 class PlayField:
-    """ Store game progress and game signs """
+    """ Stores game progress and game signs """
     status_draw = 0
     status_game = 9
 
     sign_o = -1
-    empty = 0
+    empty_cell = 0
     sign_x = +1
 
-    encode_signs = {"O": sign_o, "_": empty, "X": sign_x}
-    decode_signs = {sign_o: "O", empty: " ", sign_x: "X"}
+    encode_signs = {"O": sign_o, "_": empty_cell, "X": sign_x}
+    decode_signs = {sign_o: "O", empty_cell: " ", sign_x: "X"}
 
     win_combinations = (
         (0, 1, 2), (3, 4, 5), (6, 7, 8),  # rows
@@ -31,7 +32,7 @@ class PlayField:
                 cells_sum = sum(self.matrix[i] for i in combination)
                 if cells_sum == sign * 3:
                     return cells_sum
-        return self.status_game if self.empty in self.matrix else self.status_draw
+        return self.status_game if self.empty_cell in self.matrix else self.status_draw
 
     def __str__(self) -> str:
         """ Returns status of the game as string """
@@ -55,16 +56,16 @@ class PlayField:
 
 
 class Move(ABC):
-    """ Store possible move methods """
+    """ Stores possible move methods """
     @staticmethod
-    def manually(play_field: PlayField, sign: str) -> PlayField.get_field:
+    def manually(sign: str, play_field: PlayField) -> PlayField.get_field:
         while True:
             try:
                 column, row = map(int, input("Enter the coordinates: ").split())
                 if column not in range(1, 4) or row not in range(1, 4):
                     raise IndexError
                 cell = 9 - row * 3 + column - 1
-                if play_field.matrix[cell] != play_field.empty:
+                if play_field.matrix[cell] != play_field.empty_cell:
                     raise AssertionError
             except ValueError:
                 print("You should enter numbers!")
@@ -78,11 +79,51 @@ class Move(ABC):
             play_field.matrix[cell] = play_field.encode_signs[sign]
             return print(play_field.get_field())
 
+    def randomly(self, sign: str, play_field: PlayField) -> PlayField.get_field:
+        random_cell = choice(self._empties(play_field))
+        play_field.matrix[random_cell] = play_field.encode_signs[sign]
+        return print(play_field.get_field())
+
+    @staticmethod
+    def _empties(play_field: PlayField) -> list:
+        cells = range(len(play_field.matrix))
+        return [cell for cell in cells if play_field.matrix[cell] == play_field.empty_cell]
+
+
+class Player:
+    """ Stores player's state """
+    possible_levels = ("user", "easy", "medium", "hard")
+
+    def __init__(self, sign: str, level: str) -> None:
+        self.sign = sign
+        self.level = self._check(level)
+
+    def _check(self, level: str) -> str:
+        if level not in self.possible_levels:
+            raise Exception("Unpossible Player")
+        return level
+
+    def making_move(self, play_field: PlayField) -> None:
+        if self.level == "user":
+            Move().manually(self.sign, play_field)
+
+        if self.level == "easy":
+            print(f'Making move level "{self.level}"')
+            Move().randomly(self.sign, play_field)
+
 
 if __name__ == "__main__":
+    # Manual testing
     PLAY_FIELD = PlayField()
-    PLAY_FIELD.set_field(input("Enter cells: "))
-    SIGN = "O" if sum(PLAY_FIELD.matrix) else "X"
+    PLAYER = {
+        PLAY_FIELD.sign_x: Player("X", "user"),
+        PLAY_FIELD.sign_o: Player("O", "easy")
+    }
+    TURN = PLAY_FIELD.sign_x
     print(PLAY_FIELD.get_field())
-    Move.manually(PLAY_FIELD, SIGN)
+    while True:
+        PLAYER[TURN].making_move(PLAY_FIELD)
+        if PLAY_FIELD.__str__() != "Game not finished":
+            break
+        TURN = -TURN
     print(PLAY_FIELD.__str__())
