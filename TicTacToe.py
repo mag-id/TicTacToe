@@ -100,7 +100,7 @@ class Player:
 
     def _check(self, level: str) -> str:
         if level not in self.possible_levels:
-            raise Exception("Unpossible Player")
+            raise ValueError("Unpossible Player")
         return level
 
     def making_move(self, play_field: PlayField) -> None:
@@ -112,18 +112,38 @@ class Player:
             Move().randomly(self.sign, play_field)
 
 
-if __name__ == "__main__":
-    # Manual testing
-    PLAY_FIELD = PlayField()
-    PLAYER = {
-        PLAY_FIELD.sign_x: Player("X", "user"),
-        PLAY_FIELD.sign_o: Player("O", "easy")
-    }
-    TURN = PLAY_FIELD.sign_x
-    print(PLAY_FIELD.get_field())
+def main():
+    """ Handling game process """
     while True:
-        PLAYER[TURN].making_move(PLAY_FIELD)
-        if PLAY_FIELD.__str__() != "Game not finished":
+        arguments = input("Enter the commands: ").split()
+
+        if (len(arguments) == 1) & (arguments[0] == "exit"):
             break
-        TURN = -TURN
-    print(PLAY_FIELD.__str__())
+
+        try:
+            if (len(arguments) == 3) | (arguments[0] == "start"):
+                Player("X", arguments[1])
+                Player("O", arguments[2])
+            else:
+                raise ValueError
+        except ValueError:
+            print("Bad parameters!")
+            continue
+
+        play_field = PlayField()
+        player = {
+            play_field.sign_x: Player("X", arguments[1]),
+            play_field.sign_o: Player("O", arguments[2])
+        }
+        turn = play_field.sign_x
+        print(play_field.get_field())
+        while True:
+            player[turn].making_move(play_field)
+            if play_field.__str__() != "Game not finished":
+                break
+            turn = -turn
+        print(play_field.__str__())
+
+
+if __name__ == "__main__":
+    main()

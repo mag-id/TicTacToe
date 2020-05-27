@@ -1,6 +1,6 @@
 """ tests by PyTest """
 
-import tictactoe
+import TicTacToe as tictactoe
 
 FIELD = tictactoe.PlayField()
 MOVE = tictactoe.Move()
@@ -149,21 +149,21 @@ class TestPlayer:
         cases = {
             "user": "user",
             "medium": "medium",
-            "user2": "exception",
+            "user2": "ValueError",
             "hard": "hard",
-            "": "exception",
-            "level": "exception",
-            "noname": "exception",
-            "User": "exception",
-            "mediumM": "exception",
-            "HARD": "exception"
+            "": "ValueError",
+            "level": "ValueError",
+            "noname": "ValueError",
+            "User": "ValueError",
+            "mediumM": "ValueError",
+            "HARD": "ValueError"
         }
         player = tictactoe.Player("X", "user")
         for case, reference in cases.items():
             try:
                 result = player._check(case)
-            except Exception:
-                result = "exception"
+            except ValueError:
+                result = "ValueError"
             assert result == reference
 
     @staticmethod
