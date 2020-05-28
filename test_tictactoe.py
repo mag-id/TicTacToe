@@ -3,7 +3,8 @@
 import TicTacToe as tictactoe
 
 FIELD = tictactoe.PlayField()
-MOVE = tictactoe.Move()
+STRATEGY = tictactoe.MoveStrategy()
+CONCRETE = tictactoe.ConcreteMove()
 
 
 class TestPlayField:
@@ -11,6 +12,7 @@ class TestPlayField:
     @staticmethod
     def test__repr__():
         cases = {
+            # set_field input: __repr__ output
             "XXXOO_OX_": tictactoe.PlayField.sign_x * 3,
             "XX_XOXOOO": tictactoe.PlayField.sign_o * 3,
             "OXXXOOOXX": tictactoe.PlayField.status_draw,
@@ -23,6 +25,7 @@ class TestPlayField:
     @staticmethod
     def test__str__():
         cases = {
+            # set_field input: __str__ output
             "XXXOO_OX_": "X wins",
             "XX_XOXOOO": "O wins",
             "OXXXOOOXX": "Draw",
@@ -35,6 +38,7 @@ class TestPlayField:
     @staticmethod
     def test_set_field():
         cases = {
+            # set_field input: field state
             "_XXOO_OX_": [0, 1, 1, -1, -1, 0, -1, 1, 0],
             "XX_XOXOO_": [1, 1, 0, 1, -1, 1, -1, -1, 0],
             "OX_XOOOXX": [-1, 1, 0, 1, -1, -1, -1, 1, 1],
@@ -42,11 +46,12 @@ class TestPlayField:
         }
         for case, reference in cases.items():
             FIELD.set_field(case)
-            assert FIELD.matrix == reference
+            assert FIELD.field == reference
 
     @staticmethod
     def test_get_field():
         cases = {
+            # set_field input: get_field output
             "_XXOO_OX_": """
 ---------
 |   X X |
@@ -81,10 +86,88 @@ class TestPlayField:
             assert FIELD.get_field() == reference
 
 
-class TestMove:
+class TestPlayer:
 
     @staticmethod
-    def test_manually():
+    def test_check():
+        cases = {
+            # level: check result
+            "user": "user",
+            "medium": "medium",
+            "user2": "ValueError",
+            "hard": "hard",
+            "": "ValueError",
+            "level": "ValueError",
+            "noname": "ValueError",
+            "User": "ValueError",
+            "mediumM": "ValueError",
+            "HARD": "ValueError"
+        }
+        player = tictactoe.Player("X", "user")
+        for case, reference in cases.items():
+            try:
+                result = player._check(case)
+            except ValueError:
+                result = "ValueError"
+            assert result == reference
+
+    @staticmethod
+    def manual_test_make_move():
+        """
+        Method was tested manually.
+        Expected results:
+
+        ---------
+        |       |
+        |       |
+        |       |
+        ---------
+        Enter the coordinates: 2 2
+        ---------
+        |       |
+        |   X   |
+        |       |
+        ---------
+        Making move level "easy"
+        ---------
+        |       |
+        |   X   |
+        | O     |
+        ---------
+        Enter the coordinates:
+        """
+        return
+
+
+class TestConcreteMove:
+
+    @staticmethod
+    def manual_test_user():
+        TestMoveStrategy().manual_test_manually()
+
+    @staticmethod
+    def test_easy():
+        TestMoveStrategy().test_randomly()
+
+    @staticmethod
+    def test_medium():
+        cases = {
+            # set_field input: field state after medium move
+            "_XXOO_OX_": [1, 1, 1, -1, -1, 0, -1, 1, 0],
+            "XX_XOXOO_": [1, 1, 1, 1, -1, 1, -1, -1, 0],
+            "OX_XOOOXX": [-1, 1, 1, 1, -1, -1, -1, 1, 1],
+            "_XO_OX___": [0, 1, -1, 0, -1, 1, 1, 0, 0]
+        }
+        for case, reference in cases.items():
+            FIELD.set_field(case)
+            CONCRETE.medium("X", FIELD)
+            assert FIELD.field == reference
+
+
+class TestMoveStrategy:
+
+    @staticmethod
+    def manual_test_manually():
         """
         Method was tested manually.
         Expected results:
@@ -115,6 +198,7 @@ class TestMove:
     @staticmethod
     def test_randomly():
         cases = {
+            # set_field input: number moves for winning
             "OX_XOOOXX": [1],
             "XX_XOXOO_": [1, 2],
             "_XXOO_OX_": [1, 2, 3],
@@ -125,13 +209,14 @@ class TestMove:
             FIELD.set_field(case)
             moves = 0
             while FIELD.__str__() != "O wins":
-                MOVE.randomly("O", FIELD)
+                STRATEGY.randomly("O", FIELD)
                 moves += 1
             assert moves in reference
 
     @staticmethod
     def test_empties():
         cases = {
+            # set_field input: indexes of the empty cells
             "OX_XOOOXX": [2],
             "XX_XOXOO_": [2, 8],
             "_XXOO_OX_": [0, 5, 8],
@@ -139,56 +224,34 @@ class TestMove:
         }
         for case, reference in cases.items():
             FIELD.set_field(case)
-            assert MOVE._empties(FIELD) == reference
+            assert STRATEGY._empties(FIELD) == reference
 
 
-class TestPlayer:
+def manual_test_main():
+    pass
 
-    @staticmethod
-    def test_check():
-        cases = {
-            "user": "user",
-            "medium": "medium",
-            "user2": "ValueError",
-            "hard": "hard",
-            "": "ValueError",
-            "level": "ValueError",
-            "noname": "ValueError",
-            "User": "ValueError",
-            "mediumM": "ValueError",
-            "HARD": "ValueError"
+
+def test_computer_vs_computer():
+
+    def game(palyer_x: str, player_o: str):
+        FIELD.set_field("_________")
+        player = {
+            FIELD.sign_x: tictactoe.Player("X", palyer_x),
+            FIELD.sign_o: tictactoe.Player("O", player_o)
         }
-        player = tictactoe.Player("X", "user")
-        for case, reference in cases.items():
-            try:
-                result = player._check(case)
-            except ValueError:
-                result = "ValueError"
-            assert result == reference
+        turn = FIELD.sign_x
+        while True:
+            player[turn].make_move(FIELD)
+            if FIELD.__str__() != "Game not finished":
+                break
+            turn = -turn
+        return FIELD.__str__()
 
-    @staticmethod
-    def test_making_move():
-        """
-        Method was tested manually.
-        Expected results:
-
-        ---------
-        |       |
-        |       |
-        |       |
-        ---------
-        Enter the coordinates: 2 2
-        ---------
-        |       |
-        |   X   |
-        |       |
-        ---------
-        Making move level "easy"
-        ---------
-        |       |
-        |   X   |
-        | O     |
-        ---------
-        Enter the coordinates:
-        """
-        return
+    cases = {
+        # (player_x, player_o): who win
+        ("medium", "easy"): ("X wins"),
+        ("easy", "medium"): ("Draw", "O wins"),
+        ("medium", "medium"): ("Draw", "X wins", "O wins")
+    }
+    for case, reference in cases.items():
+        assert game(case[0], case[1]) in reference

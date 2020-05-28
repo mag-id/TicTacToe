@@ -23,16 +23,16 @@ class PlayField:
     )
 
     def __init__(self) -> None:
-        self.matrix = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.field = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 
     def __repr__(self) -> int:
         """ Returns status of the game as integer """
         for combination in self.win_combinations:
             for sign in (self.sign_x, self.sign_o):
-                cells_sum = sum(self.matrix[i] for i in combination)
+                cells_sum = sum(self.field[i] for i in combination)
                 if cells_sum == sign * 3:
                     return cells_sum
-        return self.status_game if self.empty_cell in self.matrix else self.status_draw
+        return self.status_game if self.empty_cell in self.field else self.status_draw
 
     def __str__(self) -> str:
         """ Returns status of the game as string """
@@ -42,10 +42,10 @@ class PlayField:
         return "Game not finished" if self.__repr__() == self.status_game else "Draw"
 
     def set_field(self, field: str) -> None:
-        self.matrix = [self.encode_signs[sign] for sign in field]
+        self.field = [self.encode_signs[sign] for sign in field]
 
     def get_field(self) -> str:
-        _ = [self.decode_signs[sign] for sign in self.matrix]
+        _ = [self.decode_signs[sign] for sign in self.field]
         return f"""
 ---------
 | {_[0]} {_[1]} {_[2]} |
@@ -53,41 +53,6 @@ class PlayField:
 | {_[6]} {_[7]} {_[8]} |
 ---------
 """
-
-
-class Move(ABC):
-    """ Stores possible move methods """
-    @staticmethod
-    def manually(sign: str, play_field: PlayField) -> PlayField.get_field:
-        while True:
-            try:
-                column, row = map(int, input("Enter the coordinates: ").split())
-                if column not in range(1, 4) or row not in range(1, 4):
-                    raise IndexError
-                cell = 9 - row * 3 + column - 1
-                if play_field.matrix[cell] != play_field.empty_cell:
-                    raise AssertionError
-            except ValueError:
-                print("You should enter numbers!")
-                continue
-            except IndexError:
-                print("Coordinates should be from 1 to 3!")
-                continue
-            except AssertionError:
-                print("This cell is occupied! Choose another one!")
-                continue
-            play_field.matrix[cell] = play_field.encode_signs[sign]
-            return print(play_field.get_field())
-
-    def randomly(self, sign: str, play_field: PlayField) -> PlayField.get_field:
-        random_cell = choice(self._empties(play_field))
-        play_field.matrix[random_cell] = play_field.encode_signs[sign]
-        return print(play_field.get_field())
-
-    @staticmethod
-    def _empties(play_field: PlayField) -> list:
-        cells = range(len(play_field.matrix))
-        return [cell for cell in cells if play_field.matrix[cell] == play_field.empty_cell]
 
 
 class Player:
@@ -103,13 +68,84 @@ class Player:
             raise ValueError("Unpossible Player")
         return level
 
-    def making_move(self, play_field: PlayField) -> None:
+    def make_move(self, play_field: PlayField) -> None:
         if self.level == "user":
-            Move().manually(self.sign, play_field)
-
-        if self.level == "easy":
+            ConcreteMove().user(self.sign, play_field)
+        else:
             print(f'Making move level "{self.level}"')
-            Move().randomly(self.sign, play_field)
+            if self.level == "easy":
+                ConcreteMove().easy(self.sign, play_field)
+            if self.level == "medium":
+                ConcreteMove().medium(self.sign, play_field)
+            if self.level == "hard":
+                ConcreteMove().hard(self.sign, play_field)
+        print(play_field.get_field())
+
+
+class ConcreteMove(ABC):
+    """ Implements concrete player's moves """
+    @staticmethod
+    def user(sign: str, play_field: PlayField) -> None:
+        MoveStrategy().manually(sign, play_field)
+
+    @staticmethod
+    def easy(sign: str, play_field: PlayField) -> None:
+        MoveStrategy().randomly(sign, play_field)
+
+    @staticmethod
+    def medium(sign: str, play_field: PlayField) -> None:
+        sign = play_field.encode_signs[sign]
+        for case in (sign * 2, -sign * 2):
+            for combination in play_field.win_combinations:
+                cells = sum(play_field.field[i] for i in combination)
+                if cells == case:
+                    for i in combination:
+                        if play_field.field[i] == play_field.empty_cell:
+                            play_field.field[i] = sign
+                            return
+        sign = play_field.decode_signs[sign]
+        MoveStrategy().randomly(sign, play_field)
+
+    @staticmethod
+    def hard(sign: str, play_field: PlayField) -> None:
+        pass
+
+
+class MoveStrategy(ABC):
+    """ Implements possible move strategies """
+    def randomly(self, sign: str, play_field: PlayField) -> None:
+        random_cell = choice(self._empties(play_field))
+        play_field.field[random_cell] = play_field.encode_signs[sign]
+
+    def minimax(self):
+        pass
+
+    @staticmethod
+    def manually(sign: str, play_field: PlayField) -> None:
+        while True:
+            try:
+                column, row = map(int, input("Enter the coordinates: ").split())
+                if column not in range(1, 4) or row not in range(1, 4):
+                    raise IndexError
+                cell = 9 - row * 3 + column - 1
+                if play_field.field[cell] != play_field.empty_cell:
+                    raise AssertionError
+            except ValueError:
+                print("You should enter numbers!")
+                continue
+            except IndexError:
+                print("Coordinates should be from 1 to 3!")
+                continue
+            except AssertionError:
+                print("This cell is occupied! Choose another one!")
+                continue
+            play_field.field[cell] = play_field.encode_signs[sign]
+            break
+
+    @staticmethod
+    def _empties(play_field: PlayField) -> list:
+        cells = range(len(play_field.field))
+        return [cell for cell in cells if play_field.field[cell] == play_field.empty_cell]
 
 
 def main():
@@ -138,7 +174,7 @@ def main():
         turn = play_field.sign_x
         print(play_field.get_field())
         while True:
-            player[turn].making_move(play_field)
+            player[turn].make_move(play_field)
             if play_field.__str__() != "Game not finished":
                 break
             turn = -turn
