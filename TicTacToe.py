@@ -60,12 +60,12 @@ class Player:
     possible_levels = ("user", "easy", "medium", "hard")
 
     def __init__(self, sign: str, level: str) -> None:
-        self.sign = sign
+        self.sign = PlayField.encode_signs[sign]
         self.level = self._check(level)
 
     def _check(self, level: str) -> str:
         if level not in self.possible_levels:
-            raise ValueError("Unpossible Player")
+            raise ValueError("Impossible Player")
         return level
 
     def make_move(self, play_field: PlayField) -> None:
@@ -85,16 +85,15 @@ class Player:
 class ConcreteMove(ABC):
     """ Implements concrete player's moves """
     @staticmethod
-    def user(sign: str, play_field: PlayField) -> None:
+    def user(sign: int, play_field: PlayField) -> None:
         MoveStrategy().manually(sign, play_field)
 
     @staticmethod
-    def easy(sign: str, play_field: PlayField) -> None:
+    def easy(sign: int, play_field: PlayField) -> None:
         MoveStrategy().randomly(sign, play_field)
 
     @staticmethod
-    def medium(sign: str, play_field: PlayField) -> None:
-        sign = play_field.encode_signs[sign]
+    def medium(sign: int, play_field: PlayField) -> None:
         for case in (sign * 2, -sign * 2):
             for combination in play_field.win_combinations:
                 cells = sum(play_field.field[i] for i in combination)
@@ -103,25 +102,45 @@ class ConcreteMove(ABC):
                         if play_field.field[i] == play_field.empty_cell:
                             play_field.field[i] = sign
                             return
-        sign = play_field.decode_signs[sign]
         MoveStrategy().randomly(sign, play_field)
 
     @staticmethod
-    def hard(sign: str, play_field: PlayField) -> None:
-        pass
+    def hard(sign: int, play_field: PlayField) -> None:
+        depth = len(MoveStrategy().empties(play_field))
+        if depth < 9:
+            cell, _ = MoveStrategy().minimax(sign, play_field, depth)
+            play_field.field[cell] = sign
+        else:
+            MoveStrategy().randomly(sign, play_field)
 
 
 class MoveStrategy(ABC):
     """ Implements possible move strategies """
-    def randomly(self, sign: str, play_field: PlayField) -> None:
-        random_cell = choice(self._empties(play_field))
-        play_field.field[random_cell] = play_field.encode_signs[sign]
+    def randomly(self, sign: int, play_field: PlayField) -> None:
+        random_cell = choice(self.empties(play_field))
+        play_field.field[random_cell] = sign
 
-    def minimax(self):
-        pass
+    def minimax(self, sign: int, play_field: PlayField, depth: int) -> list:
+        """ The adapted version from https://github.com/Cledersonbc/tic-tac-toe-minimax """
+        maximizing = sign == play_field.sign_x
+        best_case = [3, -3 if maximizing else +3]
+        if play_field.__repr__() != play_field.status_game:
+            best_case[-1] = play_field.__repr__()
+            return best_case
+        for i in self.empties(play_field):
+            play_field.field[i] = sign
+            current_case = self.minimax(-sign, play_field, depth - 1)
+            current_case[0] = i
+            play_field.field[i] = play_field.empty_cell
+
+            def get(comparator: max or min):
+                return comparator(current_case, best_case, key=lambda i: i[-1])
+
+            best_case = get(max) if maximizing else get(min)
+        return best_case
 
     @staticmethod
-    def manually(sign: str, play_field: PlayField) -> None:
+    def manually(sign: int, play_field: PlayField) -> None:
         while True:
             try:
                 column, row = map(int, input("Enter the coordinates: ").split())
@@ -139,11 +158,11 @@ class MoveStrategy(ABC):
             except AssertionError:
                 print("This cell is occupied! Choose another one!")
                 continue
-            play_field.field[cell] = play_field.encode_signs[sign]
+            play_field.field[cell] = sign
             break
 
     @staticmethod
-    def _empties(play_field: PlayField) -> list:
+    def empties(play_field: PlayField) -> list:
         cells = range(len(play_field.field))
         return [cell for cell in cells if play_field.field[cell] == play_field.empty_cell]
 

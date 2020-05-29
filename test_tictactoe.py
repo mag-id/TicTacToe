@@ -160,8 +160,25 @@ class TestConcreteMove:
         }
         for case, reference in cases.items():
             FIELD.set_field(case)
-            CONCRETE.medium("X", FIELD)
+            CONCRETE.medium(1, FIELD)
             assert FIELD.field == reference
+
+    @staticmethod
+    def test_hard():
+        # TODO
+        cases = {
+            # set_field input: number moves for winning
+            "_X_XO__O_": [2, 3],
+            "O________": [2, 3],
+            "_________": [3, 4]
+        }
+        for case, reference in cases.items():
+            FIELD.set_field(case)
+            moves = 0
+            while FIELD.__str__() != "O wins":
+                CONCRETE.hard(-1, FIELD)
+                moves += 1
+            assert moves in reference
 
 
 class TestMoveStrategy:
@@ -209,9 +226,22 @@ class TestMoveStrategy:
             FIELD.set_field(case)
             moves = 0
             while FIELD.__str__() != "O wins":
-                STRATEGY.randomly("O", FIELD)
+                STRATEGY.randomly(-1, FIELD)
                 moves += 1
             assert moves in reference
+
+    @staticmethod
+    def test_minimax():
+        # set_field input: best case (minimax output)
+        cases = {
+            ("_X_XO__O_", 4): [0, 3],
+            ("X________", 8): [8, 3]
+        }
+        for case, reference in cases.items():
+            field, depth = case
+            FIELD.set_field(field)
+            result = STRATEGY.minimax(1, FIELD, depth)
+            assert result == reference
 
     @staticmethod
     def test_empties():
@@ -224,7 +254,7 @@ class TestMoveStrategy:
         }
         for case, reference in cases.items():
             FIELD.set_field(case)
-            assert STRATEGY._empties(FIELD) == reference
+            assert STRATEGY.empties(FIELD) == reference
 
 
 def manual_test_main():
@@ -249,9 +279,19 @@ def test_computer_vs_computer():
 
     cases = {
         # (player_x, player_o): who win
-        ("medium", "easy"): ("X wins"),
+        # equally
+        ("hard", "hard"): ("Draw"),
+        ("easy", "easy"): ("Draw", "X wins", "O wins"),
+        ("medium", "medium"): ("Draw", "X wins"),
+        # easy vs ...
         ("easy", "medium"): ("Draw", "O wins"),
-        ("medium", "medium"): ("Draw", "X wins", "O wins")
+        ("easy", "hard"): ("Draw", "O wins"),
+        # medium vs ...
+        ("medium", "easy"): ("Draw", "X wins"),
+        ("medium", "hard"): ("Draw", "O wins"),
+        # hard vs ...
+        ("hard", "easy"): ("X wins"),
+        ("hard", "medium"): ("Draw", "X wins")
     }
     for case, reference in cases.items():
         assert game(case[0], case[1]) in reference

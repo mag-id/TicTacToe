@@ -7,7 +7,7 @@ Implementation plan:
 - [X] [Stage 2](https://hyperskill.org/projects/82/stages/453/implement) - An easy level of difficulty level and user input.
 - [X] [Stage 3](https://hyperskill.org/projects/82/stages/454/implement) - Menu commands (exit, start, easy, user).
 - [X] [Stage 4](https://hyperskill.org/projects/82/stages/455/implement) - A medium level of difficulty.
-- [ ] [Stage 5](https://hyperskill.org/projects/82/stages/456/implement) - A hard level of difficulty (MiniMax algorithm).
+- [X] [Stage 5](https://hyperskill.org/projects/82/stages/456/implement) - A hard level of difficulty (MiniMax algorithm).
 - [ ] [TicTacToe.py](TicTacToe.py) - Refactoring.
 
 You can read more information about the project [here](https://hyperskill.org/projects/82?goal=391).
