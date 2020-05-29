@@ -8,6 +8,6 @@ Implementation plan:
 - [X] [Stage 3](https://hyperskill.org/projects/82/stages/454/implement) - Menu commands (exit, start, easy, user).
 - [X] [Stage 4](https://hyperskill.org/projects/82/stages/455/implement) - A medium level of difficulty.
 - [X] [Stage 5](https://hyperskill.org/projects/82/stages/456/implement) - A hard level of difficulty (MiniMax algorithm).
-- [ ] [tictactoe.py](tictactoe.py) - Refactoring.
+- [X] [tictactoe.py](tictactoe.py) - Refactoring.
 
 You can read more information about the project [here](https://hyperskill.org/projects/82?goal=391).
