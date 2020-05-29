@@ -69,68 +69,68 @@ class Player:
             raise ValueError("Impossible Player")
         return level
 
-    def make_move(self, play_field: PlayField):
+    def make_move(self, playfield: PlayField):
         if self.level == "user":
-            ConcreteMove().user(self.sign, play_field)
+            ConcreteMove().user(self.sign, playfield)
         else:
             print(f'Making move level "{self.level}"')
             if self.level == "easy":
-                ConcreteMove().easy(self.sign, play_field)
+                ConcreteMove().easy(self.sign, playfield)
             if self.level == "medium":
-                ConcreteMove().medium(self.sign, play_field)
+                ConcreteMove().medium(self.sign, playfield)
             if self.level == "hard":
-                ConcreteMove().hard(self.sign, play_field)
-        print(play_field.get_output())
+                ConcreteMove().hard(self.sign, playfield)
+        print(playfield.get_output())
 
 
 class ConcreteMove(ABC):
     """ Implements player's moves """
 
     @staticmethod
-    def user(sign: int, play_field: PlayField):
-        MoveStrategy().manually(sign, play_field)
+    def user(sign: int, playfield: PlayField):
+        MoveStrategy().manually(sign, playfield)
 
     @staticmethod
-    def easy(sign: int, play_field: PlayField):
-        MoveStrategy().randomly(sign, play_field)
+    def easy(sign: int, playfield: PlayField):
+        MoveStrategy().randomly(sign, playfield)
 
     @staticmethod
-    def medium(sign: int, play_field: PlayField):
+    def medium(sign: int, playfield: PlayField):
         """ Makes move if two similar signs in playfield combination will be found """
 
         def duplet(sign: int) -> list:
             """ Returns list with index of the empty cell """
             for combination in WIN_CELLS:
-                if sum(play_field.cells[i] for i in combination) == sign * 2:
-                    return [i for i in combination if play_field.cells[i] == EMPTY]
+                if sum(playfield.cells[i] for i in combination) == sign * 2:
+                    return [i for i in combination if playfield.cells[i] == EMPTY]
 
         for case in (sign, -sign):
             index = duplet(case)
             if index:
-                play_field.cells[index[0]] = sign
+                playfield.cells[index[0]] = sign
                 break
         else:
-            MoveStrategy().randomly(sign, play_field)
+            MoveStrategy().randomly(sign, playfield)
 
     @staticmethod
-    def hard(sign: int, play_field: PlayField):
-        depth = len(MoveStrategy().empty_cells(play_field))
+    def hard(sign: int, playfield: PlayField):
+        depth = len(MoveStrategy().empty_cells(playfield))
         if depth < 9:
-            index, _ = MoveStrategy().minimax(sign, play_field, depth)
-            play_field.cells[index] = sign
+            index, _ = MoveStrategy().minimax(sign, playfield, depth)
+            playfield.cells[index] = sign
         else:
-            MoveStrategy().randomly(sign, play_field)
+            MoveStrategy().randomly(sign, playfield)
 
 
 class MoveStrategy(ABC):
     """ Implements possible move strategies """
 
-    def randomly(self, sign: int, play_field: PlayField):
+    def randomly(self, sign: int, playfield: PlayField):
         """ Random move """
-        random_index = choice(self.empty_cells(play_field))
-        play_field.cells[random_index] = sign
+        random_index = choice(self.empty_cells(playfield))
+        playfield.cells[random_index] = sign
 
-    def minimax(self, sign: int, play_field: PlayField, depth: int) -> list:
+    def minimax(self, sign: int, playfield: PlayField, depth: int) -> list:
         """
         The adapted version of the minimax algorithm from:
         https://github.com/Cledersonbc/tic-tac-toe-minimax
@@ -138,15 +138,15 @@ class MoveStrategy(ABC):
         maximizing = sign == X_CELL
         best_case = [EMPTY, O_WINS if maximizing else X_WINS]
 
-        if play_field.get_status_code() != NOT_FINISHED:
-            best_case[-1] = play_field.get_status_code()
+        if playfield.get_status_code() != NOT_FINISHED:
+            best_case[-1] = playfield.get_status_code()
             return best_case
 
-        for i in self.empty_cells(play_field):
-            play_field.cells[i] = sign
-            current_case = self.minimax(-sign, play_field, depth - 1)
+        for i in self.empty_cells(playfield):
+            playfield.cells[i] = sign
+            current_case = self.minimax(-sign, playfield, depth - 1)
             current_case[0] = i
-            play_field.cells[i] = EMPTY
+            playfield.cells[i] = EMPTY
 
             def get(comparator: max or min):
                 return comparator(current_case, best_case, key=lambda i: i[-1])
@@ -155,7 +155,7 @@ class MoveStrategy(ABC):
         return best_case
 
     @staticmethod
-    def manually(sign: int, play_field: PlayField):
+    def manually(sign: int, playfield: PlayField):
         """ Handlings manual user input and check them """
         while True:
             try:
@@ -163,7 +163,7 @@ class MoveStrategy(ABC):
                 if column not in range(1, 4) or row not in range(1, 4):
                     raise IndexError
                 index = 9 - row * 3 + column - 1
-                if play_field.cells[index] != EMPTY:
+                if playfield.cells[index] != EMPTY:
                     raise AssertionError
             except ValueError:
                 print("You should enter numbers!")
@@ -174,14 +174,14 @@ class MoveStrategy(ABC):
             except AssertionError:
                 print("This cell is occupied! Choose another one!")
                 continue
-            play_field.cells[index] = sign
+            playfield.cells[index] = sign
             break
 
     @staticmethod
-    def empty_cells(play_field: PlayField) -> list:
+    def empty_cells(playfield: PlayField) -> list:
         """ Returns indexes of an empty cells """
         indexes = range(NOT_FINISHED)
-        return [i for i in indexes if play_field.cells[i] == EMPTY]
+        return [i for i in indexes if playfield.cells[i] == EMPTY]
 
 
 def main():
@@ -200,16 +200,16 @@ def main():
             print("Bad parameters!")
             continue
         player = {X_CELL: Player("X", arguments[1]), O_CELL: Player("O", arguments[2])}
-        play_field = PlayField()
-        print(play_field.get_output())
+        playfield = PlayField()
+        print(playfield.get_output())
         turn = X_CELL
         while True:
-            player[turn].make_move(play_field)
-            if play_field.get_status_code() != NOT_FINISHED:
+            player[turn].make_move(playfield)
+            if playfield.get_status_code() != NOT_FINISHED:
                 break
             turn = -turn
         character = DECODE[turn]
-        print("Draw" if not play_field.get_status_code() else f"{character} wins")
+        print("Draw" if not playfield.get_status_code() else f"{character} wins")
 
 
 if __name__ == "__main__":
