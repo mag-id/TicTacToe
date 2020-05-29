@@ -3,49 +3,43 @@
 from abc import ABC
 from random import choice
 
+O_CELL = -1
+EMPTY = 0
+X_CELL = +1
+
+GAME_DRAW = 0
+NOT_FINISHED = 9
+X_WINS = X_CELL * 3
+O_WINS = O_CELL * 3
+
+ENCODE = {"O": O_CELL, "_": EMPTY, "X": X_CELL}
+DECODE = {O_CELL: "O", EMPTY: " ", X_CELL: "X"}
+
+WIN_CELLS = (
+    (0, 1, 2), (3, 4, 5), (6, 7, 8),  # rows
+    (0, 3, 6), (1, 4, 7), (2, 5, 8),  # columns
+    (0, 4, 8), (2, 4, 6)              # diagonals
+)
+
 
 class PlayField:
-    """ Stores game progress and game signs """
-    status_draw = 0
-    status_game = 9
+    """ Stores game progress"""
+    def __init__(self):
+        self.cells = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-    sign_o = -1
-    empty_cell = 0
-    sign_x = +1
+    def get_status_code(self) -> int:
+        """ Returns status code of the current game progress """
+        for combination in WIN_CELLS:
+            cells_sum = sum(self.cells[i] for i in combination)
+            if cells_sum == X_WINS:
+                return X_WINS
+            if cells_sum == O_WINS:
+                return O_WINS
+        return NOT_FINISHED if EMPTY in self.cells else GAME_DRAW
 
-    encode_signs = {"O": sign_o, "_": empty_cell, "X": sign_x}
-    decode_signs = {sign_o: "O", empty_cell: " ", sign_x: "X"}
-
-    win_combinations = (
-        (0, 1, 2), (3, 4, 5), (6, 7, 8),  # rows
-        (0, 3, 6), (1, 4, 7), (2, 5, 8),  # columns
-        (0, 4, 8), (2, 4, 6)              # diagonals
-    )
-
-    def __init__(self) -> None:
-        self.field = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-
-    def __repr__(self) -> int:
-        """ Returns status of the game as integer """
-        for combination in self.win_combinations:
-            for sign in (self.sign_x, self.sign_o):
-                cells_sum = sum(self.field[i] for i in combination)
-                if cells_sum == sign * 3:
-                    return cells_sum
-        return self.status_game if self.empty_cell in self.field else self.status_draw
-
-    def __str__(self) -> str:
-        """ Returns status of the game as string """
-        for sign in (self.sign_x, self.sign_o):
-            if self.__repr__() == sign * 3:
-                return f"{self.decode_signs[sign]} wins"
-        return "Game not finished" if self.__repr__() == self.status_game else "Draw"
-
-    def set_field(self, field: str) -> None:
-        self.field = [self.encode_signs[sign] for sign in field]
-
-    def get_field(self) -> str:
-        _ = [self.decode_signs[sign] for sign in self.field]
+    def get_output(self) -> str:
+        """ Returns play field as a string """
+        _ = [DECODE[sign] for sign in self.cells]
         return f"""
 ---------
 | {_[0]} {_[1]} {_[2]} |
@@ -56,11 +50,11 @@ class PlayField:
 
 
 class Player:
-    """ Stores player's state """
+    """ Stores player's condition """
     possible_levels = ("user", "easy", "medium", "hard")
 
-    def __init__(self, sign: str, level: str) -> None:
-        self.sign = PlayField.encode_signs[sign]
+    def __init__(self, character: str, level: str):
+        self.sign: int = ENCODE[character]
         self.level = self._check(level)
 
     def _check(self, level: str) -> str:
@@ -68,7 +62,7 @@ class Player:
             raise ValueError("Impossible Player")
         return level
 
-    def make_move(self, play_field: PlayField) -> None:
+    def make_move(self, play_field: PlayField):
         if self.level == "user":
             ConcreteMove().user(self.sign, play_field)
         else:
@@ -79,59 +73,64 @@ class Player:
                 ConcreteMove().medium(self.sign, play_field)
             if self.level == "hard":
                 ConcreteMove().hard(self.sign, play_field)
-        print(play_field.get_field())
+        print(play_field.get_output())
 
 
 class ConcreteMove(ABC):
-    """ Implements concrete player's moves """
+    """ Implements player's moves """
     @staticmethod
-    def user(sign: int, play_field: PlayField) -> None:
+    def user(sign: int, play_field: PlayField):
         MoveStrategy().manually(sign, play_field)
 
     @staticmethod
-    def easy(sign: int, play_field: PlayField) -> None:
+    def easy(sign: int, play_field: PlayField):
         MoveStrategy().randomly(sign, play_field)
 
     @staticmethod
-    def medium(sign: int, play_field: PlayField) -> None:
+    def medium(sign: int, play_field: PlayField):
         for case in (sign * 2, -sign * 2):
-            for combination in play_field.win_combinations:
-                cells = sum(play_field.field[i] for i in combination)
-                if cells == case:
+            for combination in WIN_CELLS:
+                if sum(play_field.cells[i] for i in combination) == case:
                     for i in combination:
-                        if play_field.field[i] == play_field.empty_cell:
-                            play_field.field[i] = sign
+                        if play_field.cells[i] == EMPTY:
+                            play_field.cells[i] = sign
                             return
         MoveStrategy().randomly(sign, play_field)
 
     @staticmethod
-    def hard(sign: int, play_field: PlayField) -> None:
-        depth = len(MoveStrategy().empties(play_field))
+    def hard(sign: int, play_field: PlayField):
+        depth = len(MoveStrategy().empty_cells(play_field))
         if depth < 9:
-            cell, _ = MoveStrategy().minimax(sign, play_field, depth)
-            play_field.field[cell] = sign
+            index, _ = MoveStrategy().minimax(sign, play_field, depth)
+            play_field.cells[index] = sign
         else:
             MoveStrategy().randomly(sign, play_field)
 
 
 class MoveStrategy(ABC):
     """ Implements possible move strategies """
-    def randomly(self, sign: int, play_field: PlayField) -> None:
-        random_cell = choice(self.empties(play_field))
-        play_field.field[random_cell] = sign
+    def randomly(self, sign: int, play_field: PlayField):
+        """ Random move """
+        random_index = choice(self.empty_cells(play_field))
+        play_field.cells[random_index] = sign
 
     def minimax(self, sign: int, play_field: PlayField, depth: int) -> list:
-        """ The adapted version from https://github.com/Cledersonbc/tic-tac-toe-minimax """
-        maximizing = sign == play_field.sign_x
-        best_case = [3, -3 if maximizing else +3]
-        if play_field.__repr__() != play_field.status_game:
-            best_case[-1] = play_field.__repr__()
+        """
+        The adapted version of the minimax algorithm from:
+        https://github.com/Cledersonbc/tic-tac-toe-minimax
+        """
+        maximizing = sign == X_CELL
+        best_case = [EMPTY, O_WINS if maximizing else X_WINS]
+
+        if play_field.get_status_code() != NOT_FINISHED:
+            best_case[-1] = play_field.get_status_code()
             return best_case
-        for i in self.empties(play_field):
-            play_field.field[i] = sign
+
+        for i in self.empty_cells(play_field):
+            play_field.cells[i] = sign
             current_case = self.minimax(-sign, play_field, depth - 1)
             current_case[0] = i
-            play_field.field[i] = play_field.empty_cell
+            play_field.cells[i] = EMPTY
 
             def get(comparator: max or min):
                 return comparator(current_case, best_case, key=lambda i: i[-1])
@@ -140,14 +139,15 @@ class MoveStrategy(ABC):
         return best_case
 
     @staticmethod
-    def manually(sign: int, play_field: PlayField) -> None:
+    def manually(sign: int, play_field: PlayField):
+        """ Handlings manual user input and check them """
         while True:
             try:
                 column, row = map(int, input("Enter the coordinates: ").split())
                 if column not in range(1, 4) or row not in range(1, 4):
                     raise IndexError
-                cell = 9 - row * 3 + column - 1
-                if play_field.field[cell] != play_field.empty_cell:
+                index = 9 - row * 3 + column - 1
+                if play_field.cells[index] != EMPTY:
                     raise AssertionError
             except ValueError:
                 print("You should enter numbers!")
@@ -158,23 +158,22 @@ class MoveStrategy(ABC):
             except AssertionError:
                 print("This cell is occupied! Choose another one!")
                 continue
-            play_field.field[cell] = sign
+            play_field.cells[index] = sign
             break
 
     @staticmethod
-    def empties(play_field: PlayField) -> list:
-        cells = range(len(play_field.field))
-        return [cell for cell in cells if play_field.field[cell] == play_field.empty_cell]
+    def empty_cells(play_field: PlayField) -> list:
+        """ Returns indexes of an empty cells """
+        indexes = range(NOT_FINISHED)
+        return [i for i in indexes if play_field.cells[i] == EMPTY]
 
 
 def main():
     """ Handling game process """
     while True:
         arguments = input("Enter the commands: ").split()
-
         if (len(arguments) == 1) & (arguments[0] == "exit"):
             break
-
         try:
             if (len(arguments) == 3) | (arguments[0] == "start"):
                 Player("X", arguments[1])
@@ -184,20 +183,20 @@ def main():
         except ValueError:
             print("Bad parameters!")
             continue
-
-        play_field = PlayField()
         player = {
-            play_field.sign_x: Player("X", arguments[1]),
-            play_field.sign_o: Player("O", arguments[2])
+            X_CELL: Player("X", arguments[1]),
+            O_CELL: Player("O", arguments[2])
         }
-        turn = play_field.sign_x
-        print(play_field.get_field())
+        play_field = PlayField()
+        print(play_field.get_output())
+        turn = X_CELL
         while True:
             player[turn].make_move(play_field)
-            if play_field.__str__() != "Game not finished":
+            if play_field.get_status_code() != NOT_FINISHED:
                 break
             turn = -turn
-        print(play_field.__str__())
+        character = DECODE[turn]
+        print("Draw" if not play_field.get_status_code() else f"{character} wins")
 
 
 if __name__ == "__main__":
