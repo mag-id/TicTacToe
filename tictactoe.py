@@ -96,14 +96,21 @@ class ConcreteMove(ABC):
 
     @staticmethod
     def medium(sign: int, play_field: PlayField):
-        for case in (sign * 2, -sign * 2):
+        """ Makes move if two similar signs in playfield combination will be found """
+
+        def duplet(sign: int) -> list:
+            """ Returns list with index of the empty cell """
             for combination in WIN_CELLS:
-                if sum(play_field.cells[i] for i in combination) == case:
-                    for i in combination:
-                        if play_field.cells[i] == EMPTY:
-                            play_field.cells[i] = sign
-                            return
-        MoveStrategy().randomly(sign, play_field)
+                if sum(play_field.cells[i] for i in combination) == sign * 2:
+                    return [i for i in combination if play_field.cells[i] == EMPTY]
+
+        for case in (sign, -sign):
+            index = duplet(case)
+            if index:
+                play_field.cells[index[0]] = sign
+                break
+        else:
+            MoveStrategy().randomly(sign, play_field)
 
     @staticmethod
     def hard(sign: int, play_field: PlayField):
