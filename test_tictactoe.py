@@ -1,6 +1,6 @@
 """ tests by PyTest """
 
-import TicTacToe as tictactoe
+import tictactoe
 
 FIELD = tictactoe.PlayField()
 STRATEGY = tictactoe.MoveStrategy()
