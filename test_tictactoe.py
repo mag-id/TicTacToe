@@ -10,80 +10,54 @@ CONCRETE = tictactoe.ConcreteMove()
 class TestPlayField:
 
     @staticmethod
-    def test__repr__():
+    def test_get_status_code():
+    # expected get_status_code output: current PlayField.cells state
         cases = {
-            # set_field input: __repr__ output
-            "XXXOO_OX_": tictactoe.PlayField.sign_x * 3,
-            "XX_XOXOOO": tictactoe.PlayField.sign_o * 3,
-            "OXXXOOOXX": tictactoe.PlayField.status_draw,
-            "_XO_OXX__": tictactoe.PlayField.status_game
+            +3: [1, 1, 1, -1, -1, 0, -1, 1, 0],
+            -3: [1, 1, 0, 1, -1, 1, -1, -1, -1],
+            0: [-1, 1, 1, 1, -1, -1, -1, 1, 1],
+            9: [0, 1, -1, 0, -1, 1, 1, 0, 0]
         }
-        for case, reference in cases.items():
-            FIELD.set_field(case)
-            assert FIELD.__repr__() == reference
+        for reference, case in cases.items():
+            FIELD.cells = case
+            assert FIELD.get_status_code() == reference
 
     @staticmethod
-    def test__str__():
+    def test_get_output():
+        # expected get_output output: current PlayField.cells state
         cases = {
-            # set_field input: __str__ output
-            "XXXOO_OX_": "X wins",
-            "XX_XOXOOO": "O wins",
-            "OXXXOOOXX": "Draw",
-            "_XO_OXX__": "Game not finished"
-        }
-        for case, reference in cases.items():
-            FIELD.set_field(case)
-            assert FIELD.__str__() == reference
-
-    @staticmethod
-    def test_set_field():
-        cases = {
-            # set_field input: field state
-            "_XXOO_OX_": [0, 1, 1, -1, -1, 0, -1, 1, 0],
-            "XX_XOXOO_": [1, 1, 0, 1, -1, 1, -1, -1, 0],
-            "OX_XOOOXX": [-1, 1, 0, 1, -1, -1, -1, 1, 1],
-            "_XO_OX___": [0, 1, -1, 0, -1, 1, 0, 0, 0]
-        }
-        for case, reference in cases.items():
-            FIELD.set_field(case)
-            assert FIELD.field == reference
-
-    @staticmethod
-    def test_get_field():
-        cases = {
-            # set_field input: get_field output
-            "_XXOO_OX_": """
+            """
 ---------
 |   X X |
 | O O   |
 | O X   |
 ---------
-""",
-            "XX_XOXOO_": """
+""": [0, 1, 1, -1, -1, 0, -1, 1, 0],
+            """
 ---------
 | X X   |
 | X O X |
 | O O   |
 ---------
-""",
-            "OX_XOOOXX": """
+""": [1, 1, 0, 1, -1, 1, -1, -1, 0],
+            """
 ---------
 | O X   |
 | X O O |
 | O X X |
 ---------
-""",
-            "_XO_OX___": """
+""": [-1, 1, 0, 1, -1, -1, -1, 1, 1],
+            """
 ---------
 |   X O |
 |   O X |
 |       |
 ---------
-"""
+""": [0, 1, -1, 0, -1, 1, 0, 0, 0]
         }
-        for case, reference in cases.items():
-            FIELD.set_field(case)
-            assert FIELD.get_field() == reference
+        for reference, case in cases.items():
+            FIELD.cells = case
+            assert FIELD.get_output() == reference
 
 
 class TestPlayer:
@@ -91,7 +65,7 @@ class TestPlayer:
     @staticmethod
     def test_check():
         cases = {
-            # level: check result
+            # input level: check expected result
             "user": "user",
             "medium": "medium",
             "user2": "ValueError",
@@ -111,171 +85,94 @@ class TestPlayer:
                 result = "ValueError"
             assert result == reference
 
-    @staticmethod
-    def manual_test_make_move():
-        """
-        Method was tested manually.
-        Expected results:
-
-        ---------
-        |       |
-        |       |
-        |       |
-        ---------
-        Enter the coordinates: 2 2
-        ---------
-        |       |
-        |   X   |
-        |       |
-        ---------
-        Making move level "easy"
-        ---------
-        |       |
-        |   X   |
-        | O     |
-        ---------
-        Enter the coordinates:
-        """
-        return
-
 
 class TestConcreteMove:
 
     @staticmethod
-    def manual_test_user():
-        TestMoveStrategy().manual_test_manually()
-
-    @staticmethod
-    def test_easy():
-        TestMoveStrategy().test_randomly()
-
-    @staticmethod
     def test_medium():
-        cases = {
-            # set_field input: field state after medium move
-            "_XXOO_OX_": [1, 1, 1, -1, -1, 0, -1, 1, 0],
-            "XX_XOXOO_": [1, 1, 1, 1, -1, 1, -1, -1, 0],
-            "OX_XOOOXX": [-1, 1, 1, 1, -1, -1, -1, 1, 1],
-            "_XO_OX___": [0, 1, -1, 0, -1, 1, 1, 0, 0]
-        }
-        for case, reference in cases.items():
-            FIELD.set_field(case)
+        cases = [
+            # current cells state: cells state after medium move
+            ([0, 1, 1, -1, -1, 0, -1, 1, 0], [1, 1, 1, -1, -1, 0, -1, 1, 0]),
+            ([1, 1, 0, 1, -1, 1, -1, -1, 0], [1, 1, 1, 1, -1, 1, -1, -1, 0]),
+            ([-1, 1, 0, 1, -1, -1, -1, 1, 1], [-1, 1, 1, 1, -1, -1, -1, 1, 1]),
+            ([0, 1, -1, 0, -1, 1, 0, 0, 0], [0, 1, -1, 0, -1, 1, 1, 0, 0])
+        ]
+        for case, reference in cases:
+            FIELD.cells = case
             CONCRETE.medium(1, FIELD)
-            assert FIELD.field == reference
+            assert FIELD.cells == reference
 
     @staticmethod
     def test_hard():
-        # TODO
-        cases = {
-            # set_field input: number moves for winning
-            "_X_XO__O_": [2, 3],
-            "O________": [2, 3],
-            "_________": [3, 4]
-        }
-        for case, reference in cases.items():
-            FIELD.set_field(case)
-            moves = 0
-            while FIELD.__str__() != "O wins":
-                CONCRETE.hard(-1, FIELD)
-                moves += 1
-            assert moves in reference
+        # current cells state, expected sum of the cells
+        case, reference = [0, 0, 0, 0, 0, 0, 0, 0, 0], 1
+        FIELD.cells = case
+        CONCRETE.hard(1, FIELD)
+        assert sum(FIELD.cells) == reference
 
 
 class TestMoveStrategy:
 
     @staticmethod
-    def manual_test_manually():
-        """
-        Method was tested manually.
-        Expected results:
-
-        ---------
-        |       |
-        |       |
-        | X     |
-        ---------
-        Enter the coordinates: 1 1
-        This cell is occupied! Choose another one!
-        Enter the coordinates: one
-        You should enter numbers!
-        Enter the coordinates: one three
-        You should enter numbers!
-        Enter the coordinates: 4 1
-        Coordinates should be from 1 to 3!
-        Enter the coordinates: 1 3
-        ---------
-        | X     |
-        |       |
-        | X     |
-        ---------
-
-        """
-        return
-
-    @staticmethod
     def test_randomly():
+        # number of moves for winning: expected win cells state
         cases = {
-            # set_field input: number moves for winning
-            "OX_XOOOXX": [1],
-            "XX_XOXOO_": [1, 2],
-            "_XXOO_OX_": [1, 2, 3],
-            "_XO_OX___": [1, 2, 3, 4, 5],
-            "_________": [1, 2, 3, 4, 5, 6, 7, 8, 9]
+            (1,): [-1, 1, 0, 1, -1, -1, -1, 1, 1],
+            (1, 2): [1, 1, 0, 1, -1, 1, -1, -1, 1],
+            (1, 2, 3): [0, 1, 1, -1, -1, 0, -1, 1, 0],
+            (1, 2, 3, 4, 5): [0, 1, -1, 0, -1, 1, 0, 0, 0],
+            (1, 2, 3, 4, 5, 6, 7, 8, 9): [0, 0, 0, 0, 0, 0, 0, 0, 0]
         }
-        for case, reference in cases.items():
-            FIELD.set_field(case)
+        for reference, case in cases.items():
+            FIELD.cells = case
             moves = 0
-            while FIELD.__str__() != "O wins":
+            while FIELD.get_status_code() != tictactoe.O_WINS:
                 STRATEGY.randomly(-1, FIELD)
                 moves += 1
             assert moves in reference
 
     @staticmethod
     def test_minimax():
-        # set_field input: best case (minimax output)
-        cases = {
-            ("_X_XO__O_", 4): [0, 3],
-            ("X________", 8): [8, 3]
-        }
-        for case, reference in cases.items():
-            field, depth = case
-            FIELD.set_field(field)
+        # current cells state, depth, best case (minimax output)
+        cases = [
+            ([0, 1, 0, 1, -1, 0, 0, -1, 0], 4, [0, 3]),
+            ([1, 0, 0, 0, 0, 0, 0, 0, 0], 8, [8, 3])
+        ]
+        for case, depth, reference in cases:
+            FIELD.cells = case
             result = STRATEGY.minimax(1, FIELD, depth)
             assert result == reference
 
     @staticmethod
-    def test_empties():
-        cases = {
-            # set_field input: indexes of the empty cells
-            "OX_XOOOXX": [2],
-            "XX_XOXOO_": [2, 8],
-            "_XXOO_OX_": [0, 5, 8],
-            "_XO_OX___": [0, 3, 6, 7, 8]
-        }
-        for case, reference in cases.items():
-            FIELD.set_field(case)
-            assert STRATEGY.empties(FIELD) == reference
-
-
-def manual_test_main():
-    pass
+    def test_empty_cells():
+        # current cells state, expected indexes of the empty cells
+        cases = [
+            ([-1, 1, 0, 1, -1, -1, -1, 1, 1], [2]),
+            ([1, 1, 0, 1, -1, 1, -1, -1, 0], [2, 8]),
+            ([0, 1, 1, -1, -1, 0, -1, 1, 0], [0, 5, 8]),
+            ([0, 1, -1, 0, -1, 1, 0, 0, 0], [0, 3, 6, 7, 8])
+        ]
+        for case, reference in cases:
+            FIELD.cells = case
+            assert STRATEGY.empty_cells(FIELD) == reference
 
 
 def test_computer_vs_computer():
 
     def game(palyer_x: str, player_o: str):
-        FIELD.set_field("_________")
+        FIELD.cells = [0, 0, 0, 0, 0, 0, 0, 0, 0]
         player = {
-            FIELD.sign_x: tictactoe.Player("X", palyer_x),
-            FIELD.sign_o: tictactoe.Player("O", player_o)
+            tictactoe.X_CELL: tictactoe.Player("X", palyer_x),
+            tictactoe.O_CELL: tictactoe.Player("O", player_o)
         }
-        turn = FIELD.sign_x
+        turn = tictactoe.X_CELL
         while True:
             player[turn].make_move(FIELD)
-            if FIELD.__str__() != "Game not finished":
+            if FIELD.get_status_code() != tictactoe.NOT_FINISHED:
                 break
             turn = -turn
-        return FIELD.__str__()
+        character = tictactoe.DECODE[turn]
+        return "Draw" if not FIELD.get_status_code() else f"{character} wins"
 
     cases = {
         # (player_x, player_o): who win
