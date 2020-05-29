@@ -16,14 +16,20 @@ ENCODE = {"O": O_CELL, "_": EMPTY, "X": X_CELL}
 DECODE = {O_CELL: "O", EMPTY: " ", X_CELL: "X"}
 
 WIN_CELLS = (
-    (0, 1, 2), (3, 4, 5), (6, 7, 8),  # rows
-    (0, 3, 6), (1, 4, 7), (2, 5, 8),  # columns
-    (0, 4, 8), (2, 4, 6)              # diagonals
+    (0, 1, 2),
+    (3, 4, 5),
+    (6, 7, 8),  # rows
+    (0, 3, 6),
+    (1, 4, 7),
+    (2, 5, 8),  # columns
+    (0, 4, 8),
+    (2, 4, 6),  # diagonals
 )
 
 
 class PlayField:
     """ Stores game progress"""
+
     def __init__(self):
         self.cells = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 
@@ -51,6 +57,7 @@ class PlayField:
 
 class Player:
     """ Stores player's condition """
+
     possible_levels = ("user", "easy", "medium", "hard")
 
     def __init__(self, character: str, level: str):
@@ -78,6 +85,7 @@ class Player:
 
 class ConcreteMove(ABC):
     """ Implements player's moves """
+
     @staticmethod
     def user(sign: int, play_field: PlayField):
         MoveStrategy().manually(sign, play_field)
@@ -109,6 +117,7 @@ class ConcreteMove(ABC):
 
 class MoveStrategy(ABC):
     """ Implements possible move strategies """
+
     def randomly(self, sign: int, play_field: PlayField):
         """ Random move """
         random_index = choice(self.empty_cells(play_field))
@@ -183,10 +192,7 @@ def main():
         except ValueError:
             print("Bad parameters!")
             continue
-        player = {
-            X_CELL: Player("X", arguments[1]),
-            O_CELL: Player("O", arguments[2])
-        }
+        player = {X_CELL: Player("X", arguments[1]), O_CELL: Player("O", arguments[2])}
         play_field = PlayField()
         print(play_field.get_output())
         turn = X_CELL

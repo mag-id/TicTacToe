@@ -8,15 +8,14 @@ CONCRETE = tictactoe.ConcreteMove()
 
 
 class TestPlayField:
-
     @staticmethod
     def test_get_status_code():
-    # expected get_status_code output: current PlayField.cells state
+        # expected get_status_code output: current PlayField.cells state
         cases = {
             +3: [1, 1, 1, -1, -1, 0, -1, 1, 0],
             -3: [1, 1, 0, 1, -1, 1, -1, -1, -1],
             0: [-1, 1, 1, 1, -1, -1, -1, 1, 1],
-            9: [0, 1, -1, 0, -1, 1, 1, 0, 0]
+            9: [0, 1, -1, 0, -1, 1, 1, 0, 0],
         }
         for reference, case in cases.items():
             FIELD.cells = case
@@ -32,28 +31,68 @@ class TestPlayField:
 | O O   |
 | O X   |
 ---------
-""": [0, 1, 1, -1, -1, 0, -1, 1, 0],
+""": [
+                0,
+                1,
+                1,
+                -1,
+                -1,
+                0,
+                -1,
+                1,
+                0,
+            ],
             """
 ---------
 | X X   |
 | X O X |
 | O O   |
 ---------
-""": [1, 1, 0, 1, -1, 1, -1, -1, 0],
+""": [
+                1,
+                1,
+                0,
+                1,
+                -1,
+                1,
+                -1,
+                -1,
+                0,
+            ],
             """
 ---------
 | O X   |
 | X O O |
 | O X X |
 ---------
-""": [-1, 1, 0, 1, -1, -1, -1, 1, 1],
+""": [
+                -1,
+                1,
+                0,
+                1,
+                -1,
+                -1,
+                -1,
+                1,
+                1,
+            ],
             """
 ---------
 |   X O |
 |   O X |
 |       |
 ---------
-""": [0, 1, -1, 0, -1, 1, 0, 0, 0]
+""": [
+                0,
+                1,
+                -1,
+                0,
+                -1,
+                1,
+                0,
+                0,
+                0,
+            ],
         }
         for reference, case in cases.items():
             FIELD.cells = case
@@ -61,7 +100,6 @@ class TestPlayField:
 
 
 class TestPlayer:
-
     @staticmethod
     def test_check():
         cases = {
@@ -75,7 +113,7 @@ class TestPlayer:
             "noname": "ValueError",
             "User": "ValueError",
             "mediumM": "ValueError",
-            "HARD": "ValueError"
+            "HARD": "ValueError",
         }
         player = tictactoe.Player("X", "user")
         for case, reference in cases.items():
@@ -87,7 +125,6 @@ class TestPlayer:
 
 
 class TestConcreteMove:
-
     @staticmethod
     def test_medium():
         cases = [
@@ -95,7 +132,7 @@ class TestConcreteMove:
             ([0, 1, 1, -1, -1, 0, -1, 1, 0], [1, 1, 1, -1, -1, 0, -1, 1, 0]),
             ([1, 1, 0, 1, -1, 1, -1, -1, 0], [1, 1, 1, 1, -1, 1, -1, -1, 0]),
             ([-1, 1, 0, 1, -1, -1, -1, 1, 1], [-1, 1, 1, 1, -1, -1, -1, 1, 1]),
-            ([0, 1, -1, 0, -1, 1, 0, 0, 0], [0, 1, -1, 0, -1, 1, 1, 0, 0])
+            ([0, 1, -1, 0, -1, 1, 0, 0, 0], [0, 1, -1, 0, -1, 1, 1, 0, 0]),
         ]
         for case, reference in cases:
             FIELD.cells = case
@@ -112,7 +149,6 @@ class TestConcreteMove:
 
 
 class TestMoveStrategy:
-
     @staticmethod
     def test_randomly():
         # number of moves for winning: expected win cells state
@@ -121,7 +157,7 @@ class TestMoveStrategy:
             (1, 2): [1, 1, 0, 1, -1, 1, -1, -1, 1],
             (1, 2, 3): [0, 1, 1, -1, -1, 0, -1, 1, 0],
             (1, 2, 3, 4, 5): [0, 1, -1, 0, -1, 1, 0, 0, 0],
-            (1, 2, 3, 4, 5, 6, 7, 8, 9): [0, 0, 0, 0, 0, 0, 0, 0, 0]
+            (1, 2, 3, 4, 5, 6, 7, 8, 9): [0, 0, 0, 0, 0, 0, 0, 0, 0],
         }
         for reference, case in cases.items():
             FIELD.cells = case
@@ -136,7 +172,7 @@ class TestMoveStrategy:
         # current cells state, depth, best case (minimax output)
         cases = [
             ([0, 1, 0, 1, -1, 0, 0, -1, 0], 4, [0, 3]),
-            ([1, 0, 0, 0, 0, 0, 0, 0, 0], 8, [8, 3])
+            ([1, 0, 0, 0, 0, 0, 0, 0, 0], 8, [8, 3]),
         ]
         for case, depth, reference in cases:
             FIELD.cells = case
@@ -150,7 +186,7 @@ class TestMoveStrategy:
             ([-1, 1, 0, 1, -1, -1, -1, 1, 1], [2]),
             ([1, 1, 0, 1, -1, 1, -1, -1, 0], [2, 8]),
             ([0, 1, 1, -1, -1, 0, -1, 1, 0], [0, 5, 8]),
-            ([0, 1, -1, 0, -1, 1, 0, 0, 0], [0, 3, 6, 7, 8])
+            ([0, 1, -1, 0, -1, 1, 0, 0, 0], [0, 3, 6, 7, 8]),
         ]
         for case, reference in cases:
             FIELD.cells = case
@@ -158,12 +194,11 @@ class TestMoveStrategy:
 
 
 def test_computer_vs_computer():
-
     def game(palyer_x: str, player_o: str):
         FIELD.cells = [0, 0, 0, 0, 0, 0, 0, 0, 0]
         player = {
             tictactoe.X_CELL: tictactoe.Player("X", palyer_x),
-            tictactoe.O_CELL: tictactoe.Player("O", player_o)
+            tictactoe.O_CELL: tictactoe.Player("O", player_o),
         }
         turn = tictactoe.X_CELL
         while True:
@@ -188,7 +223,7 @@ def test_computer_vs_computer():
         ("medium", "hard"): ("Draw", "O wins"),
         # hard vs ...
         ("hard", "easy"): ("X wins"),
-        ("hard", "medium"): ("Draw", "X wins")
+        ("hard", "medium"): ("Draw", "X wins"),
     }
     for case, reference in cases.items():
         assert game(case[0], case[1]) in reference
