@@ -6,7 +6,7 @@ Study project from [JetBrains Academy](https://hyperskill.org/projects?goal=7) w
 
 ### Run
 
-    python tictacote.py
+    python tictactoe.py
 
 ### Enter the commands
 
